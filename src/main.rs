@@ -7,13 +7,20 @@ fn main() {
     let path = env::var_os("PATH").unwrap();
     fs::write("aliases.txt", "").unwrap();
 
-    let dir_names = path.to_str().unwrap().split(':').collect::<Vec<&str>>();
+    let dir_names = if cfg!(windows) {
+        path.to_str().unwrap().split(';').collect::<Vec<&str>>()
+    } else {
+        path.to_str().unwrap().split(':').collect::<Vec<&str>>()
+    };
+    run(&dir_names)
+}
 
-    for dir in dir_names.iter() {
-        let files = match fs::read_dir(dir) {
+fn run(dir_names: &[&str]) {
+    for dir_name in dir_names.iter() {
+        let files = match fs::read_dir(dir_name) {
             Ok(files) => files,
             Err(err) => {
-                println!("error dir: {:?}", dir);
+                println!("error dir: {:?}", dir_name);
                 panic!("{}", err)
             }
         };
